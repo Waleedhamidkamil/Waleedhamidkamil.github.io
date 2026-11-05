@@ -345,7 +345,7 @@ function phoneFrame(dt) {
   if (r.bottom > -H * .2) { tour.paint(T, p, dt); current = tour.chapter(); }
   else tour.park();
 }
-let lastNow = 0, lastScroll = -1, lastHero = -1, lastReady = false, lastRaw = 0;
+let lastNow = 0, lastScroll = -1, lastHero = -1, lastReady = false, lastLiveOn = false, lastRaw = 0;
 (function loop(now) {
   now = now || performance.now();
   const dt = Math.min(50, now - (lastNow || now)); lastNow = now;
@@ -354,11 +354,12 @@ let lastNow = 0, lastScroll = -1, lastHero = -1, lastReady = false, lastRaw = 0;
     const hero = window.__hero;
     if (!laid || (geo && hero && geo.win !== hero.win())) layout();
     if (laid) {
-      const hp = hero.prog(), ready = hero.ready();
-      if (scrollY === lastScroll && hp === lastHero && ready === lastReady && T === lastRaw) {
+      const hp = hero.prog(), ready = hero.ready(), liveOn = live.classList.contains('on');
+      // The hero may reveal its live window one frame after a covered jump reaches its endpoint.
+      if (scrollY === lastScroll && hp === lastHero && ready === lastReady && liveOn === lastLiveOn && T === lastRaw) {
         requestAnimationFrame(loop); return;
       }
-      lastScroll = scrollY; lastHero = hp; lastReady = ready;
+      lastScroll = scrollY; lastHero = hp; lastReady = ready; lastLiveOn = liveOn;
       const H = pin.clientHeight, r = stage.getBoundingClientRect(), tour = stage.offsetHeight - H - HERO_SCREENS * H;
       const raw = tour > 0 ? clamp((-r.top - HERO_SCREENS * H) / tour) : 0;
       lastRaw = raw;

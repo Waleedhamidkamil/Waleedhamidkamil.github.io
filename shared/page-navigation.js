@@ -2,6 +2,7 @@
    so the tour and course pile never race past. User input always returns control. */
 (() => {
   const root = document.documentElement;
+  const navLinks = '#navHub,#nav a[href="#certificates"],#nav a[href="#contact"]';
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   const clamp = v => Math.max(0, Math.min(1, v));
   const soft = t => t * t * (3 - 2 * t);
@@ -103,9 +104,11 @@ html.navigating{scroll-behavior:auto}
     } else if (!await tween(q, 280, t => { cover.style.opacity = 1 - soft(t); })) return;
     finish(q);
   }
-  document.querySelectorAll('#nav a[href="#certificates"],#nav a[href="#contact"]').forEach(a => {
+  document.querySelectorAll(navLinks).forEach(a => {
     a.addEventListener('click', e => {
       if (e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+      // The tour keeps its existing keyboard destination and chapter-control focus.
+      if (a.id === 'navHub' && e.detail === 0) return;
       const el = document.querySelector(a.getAttribute('href'));
       if (el) { e.preventDefault(); go(el, e.detail === 0); }
     });
@@ -113,7 +116,7 @@ html.navigating{scroll-behavior:auto}
   const inputs = ['wheel', 'touchstart', 'touchmove', 'pointerdown', 'pointercancel', 'keydown'];
   function input(e) {
     // A new section link replaces the current journey in its click handler.
-    if ((e.type === 'pointerdown' || e.type === 'touchstart') && e.target.closest?.('#nav a[href="#certificates"],#nav a[href="#contact"]')) return;
+    if ((e.type === 'pointerdown' || e.type === 'touchstart') && e.target.closest?.(navLinks)) return;
     cancel();
   }
   inputs.forEach(type => addEventListener(type, input, { passive: true, capture: true }));
