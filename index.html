@@ -94,19 +94,6 @@ h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);w
 <link rel="apple-touch-icon" href="shared/apple-touch-icon.png" sizes="180x180">
 <link rel="stylesheet" href="shared/phone.css">
 <link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="shared/motion.css">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Waleed Hamid | ERP specialist and procurement professional">
-<meta property="og:description" content="I'm Waleed Hamid Kamil, an ERP specialist and developer with 11 years in procurement and contracts for oil and gas projects. See my work and certifications.">
-<meta name="twitter:card" content="summary">
-<noscript><style>
-#stage{height:auto}#pin{position:relative;height:auto;min-height:100svh;padding:96px var(--sp4) var(--sp7)}
-#pin canvas,#head,#live,#notes,#labels,#sample,#cursor,#todo{display:none}
-#name{position:static;width:auto;height:auto;clip-path:none;white-space:normal;margin:0 0 var(--sp5);font-size:var(--fs-h2)}
-#intro{position:static;padding:0}#lead .sr{position:static;width:auto;height:auto;clip-path:none;white-space:normal;overflow:visible}
-#proof{opacity:1;transform:none}#after,#still{display:block}#business-hub{position:static}
-</style></noscript>
-<link rel="stylesheet" href="badge/badge.css">
 <link rel="canonical" href="https://waleedhamid.me/">
 <meta property="og:url" content="https://waleedhamid.me/">
 <script type="application/ld+json">
@@ -155,6 +142,19 @@ h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);w
   ]
 }
 </script>
+<link rel="stylesheet" href="shared/motion.css">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Waleed Hamid | ERP specialist and procurement professional">
+<meta property="og:description" content="I'm Waleed Hamid Kamil, an ERP specialist and developer with 11 years in procurement and contracts for oil and gas projects. See my work and certifications.">
+<meta name="twitter:card" content="summary">
+<noscript><style>
+#stage{height:auto}#pin{position:relative;height:auto;min-height:100svh;padding:96px var(--sp4) var(--sp7)}
+#pin canvas,#head,#live,#notes,#labels,#sample,#cursor,#todo{display:none}
+#name{position:static;width:auto;height:auto;clip-path:none;white-space:normal;margin:0 0 var(--sp5);font-size:var(--fs-h2)}
+#intro{position:static;padding:0}#lead .sr{position:static;width:auto;height:auto;clip-path:none;white-space:normal;overflow:visible}
+#proof{opacity:1;transform:none}#after,#still{display:block}#business-hub{position:static}
+</style></noscript>
+<link rel="stylesheet" href="badge/badge.css">
 </head>
 <body>
 <nav id="nav" class="frost" aria-label="Main">
@@ -298,6 +298,13 @@ $('#still').src = window.DASH;
 
 let VH = 0, W = 0, H = 0, dpr = 1, base = 0, gut = 0, tx = 0, y1 = 0, y2 = 0, hole = null, zMax = 40, charsA = [], charsB = [], joinSize = 0;
 let target = 0, prog = 0, lastProg = -1, startedAt = 0, dirty = true, typedCount = 0, frames = [];
+// Navigation borrows this same D renderer without scrolling through the pinned tour.
+let navigationProgress = null;
+function travel(value) {
+  navigationProgress = value;
+  if (value === null) { readScroll(); prog = target; }
+  dirty = true;
+}
 
 // Safari's canvas can't use the font's wide axis, so there the name is drawn from its outlines (tools/build_name_glyphs.py)
 let glyphs = null, glyphsTried = false;
@@ -489,8 +496,10 @@ function drawScene(now) {
     const hw = hole.w * z, hh = hole.h * z;
     sx.beginPath(); sx.rect(ox - hw / 2, oy - hh / 2, hw, hh); sx.clip();
   }
-  drawBlur(span(prog, .002, .03) * (1 - span(zoom, .86, .995)));
-  drawWindow(smooth(span(zoom, .8, .97)), 1.08 - .08 * smooth(span(zoom, .78, 1)));
+  if (navigationProgress === null) {
+    drawBlur(span(prog, .002, .03) * (1 - span(zoom, .86, .995)));
+    drawWindow(smooth(span(zoom, .8, .97)), 1.08 - .08 * smooth(span(zoom, .78, 1)));
+  }
   sx.restore();
   if (lettersGone < 1) {
     sx.save();
@@ -705,11 +714,12 @@ function type(now) {
 let last = 0, active = true, drawnAt = 0;
 function frame(now) {
   const dt = Math.min(50, now - (last || now)); last = now;
-  if (active) {
+  if (active || navigationProgress !== null) {
     if (frames.length < 2000) frames.push(dt);
     readScroll();
-    prog += (target - prog) * (1 - Math.exp(-dt / 90));
-    if (Math.abs(target - prog) < .0004) prog = target;
+    if (navigationProgress !== null) prog = navigationProgress;
+    else prog += (target - prog) * (1 - Math.exp(-dt / 90));
+    if (navigationProgress === null && Math.abs(target - prog) < .0004) prog = target;
     type(now);
     applyDom();
     // Until a frame has been drawn after the entrance ended: a slow start must not leave the name half drawn or missing
@@ -742,11 +752,12 @@ Promise.all([ready, imgReady]).then(() => {
   if (REDUCED) { prog = target = 0; type(startedAt); applyDom(); drawScene(startedAt); present(startedAt, true); addEventListener('resize', () => { drawScene(0); present(0, true); }); }
   else requestAnimationFrame(frame);
 });
-window.__hero = { nameBox: () => { sx.font = FONT(base); return { left: tx, top: y1 - base * .82, bottom: y2 + base * .12, right: tx + nameW(base) }; }, win: () => win, ready: () => dashReady, redraw: () => { dirty = true; }, gl: () => !!gl, vh: () => VH, prog: () => prog, hole: () => hole, zMax: () => zMax, frames: () => { const f = frames.slice(30).sort((a, b) => a - b); return { n: f.length, med: f[f.length >> 1], p95: f[Math.floor(f.length * .95)] }; }, base: () => base, wide: () => { sx.font = FONT(100); return sx.measureText('WALEED').width; } };
+window.__hero = { nameBox: () => { sx.font = FONT(base); return { left: tx, top: y1 - base * .82, bottom: y2 + base * .12, right: tx + nameW(base) }; }, win: () => win, ready: () => dashReady, redraw: () => { dirty = true; }, gl: () => !!gl, travel, vh: () => VH, prog: () => prog, hole: () => hole, zMax: () => zMax, frames: () => { const f = frames.slice(30).sort((a, b) => a - b); return { n: f.length, med: f[f.length >> 1], p95: f[Math.floor(f.length * .95)] }; }, base: () => base, wide: () => { sx.font = FONT(100); return sx.measureText('WALEED').width; } };
 });
 </script>
 <script src="certs/courses.js"></script>
 <script src="shared/smooth-scroll.js"></script>
+<script src="shared/page-navigation.js"></script>
 <script src="shared/to-top.js"></script>
 <script src="shared/phone-icons.js"></script>
 <script src="shared/phone-cam.js"></script>

@@ -1,8 +1,6 @@
 /* Back to top: appears once you have scrolled away. Drawn like the site's sketched lines, and its ring shows how far down the page you are.
-   A click rewinds the page. Any wheel, touch or key stops the rewind. With reduced motion it jumps. */
+   Navigation handles the covered return, using the reverse D on the main page. */
 (() => {
-  const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const soft = t => t * t * t * (t * (t * 6 - 15) + 10);
   const rng = s => { let x = s * 9301 + 49297; return () => (x = (x * 9301 + 49297) % 233280) / 233280 - .5; };
   const sketch = (pts, seed, amp) => { const r = rng(seed); return pts.map(([x, y], i) => `${i ? 'L' : 'M'}${(x + r() * amp).toFixed(2)} ${(y + r() * amp).toFixed(2)}`).join(''); };
   const circle = [];
@@ -34,7 +32,7 @@
   document.body.appendChild(btn);
   const ring = btn.querySelector('.ring');
 
-  let shown = false, queued = false, raf = 0, lastY = scrollY, goingUp = false;
+  let shown = false, queued = false, lastY = scrollY, goingUp = false;
   // On a touch screen it would sit over what is being read, so it comes when you scroll back, and at the end of the page
   const touch = matchMedia('(pointer: coarse)').matches || innerWidth < 760;
   function update() {
@@ -51,22 +49,8 @@
   addEventListener('resize', later);
   update();
 
-  const stop = () => { if (raf) { cancelAnimationFrame(raf); raf = 0; } };
-  ['wheel', 'touchstart', 'keydown'].forEach(ev => addEventListener(ev, stop, { passive: true, capture: true }));
-  addEventListener('pointerdown', e => { if (!btn.contains(e.target)) stop(); }, { passive: true, capture: true });
   btn.addEventListener('click', e => {
-    const from = scrollY;
-    // By keyboard, focus goes back to the top with the page
-    if (e.detail === 0) { const first = document.querySelector('nav a'); if (first) first.focus({ preventScroll: true }); }
-    if (from <= 0) return;
-    if (REDUCE) { scrollTo({ top: 0, behavior: 'instant' }); return; }
-    stop();
-    const ms = Math.min(2000, 650 + from * .06), t0 = performance.now();
-    const step = now => {
-      const k = Math.min(1, Math.max(0, (now - t0) / ms));
-      scrollTo({ top: from * (1 - soft(k)), behavior: 'instant' });
-      raf = k < 1 ? requestAnimationFrame(step) : 0;
-    };
-    raf = requestAnimationFrame(step);
+    if (window.__pageNavigation) window.__pageNavigation.toTop(e.detail === 0);
+    else scrollTo({ top: 0, behavior: 'instant' });
   });
 })();

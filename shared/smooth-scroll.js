@@ -3,15 +3,16 @@
 (() => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   const TAU = 120;
-  let target = 0, pos = 0, running = false, last = 0;
+  let target = 0, pos = 0, running = false, last = 0, raf = 0;
   const limit = () => document.documentElement.scrollHeight - innerHeight;
   function frame(now) {
+    raf = 0;
     if (!running) return;
     const dt = Math.min(48, Math.max(0, now - last)); last = now;
     pos += (target - pos) * (1 - Math.exp(-dt / TAU));
     if (Math.abs(target - pos) < .4) { pos = target; running = false; }
     scrollTo({ top: pos, behavior: 'instant' });
-    if (running) requestAnimationFrame(frame);
+    if (running) raf = requestAnimationFrame(frame);
   }
   // A box with its own scrollbar keeps the wheel until it reaches its end
   function scrollsInside(e) {
@@ -33,9 +34,10 @@
     const unit = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? innerHeight : 1;
     if (!running) pos = target = scrollY;
     target = Math.max(0, Math.min(limit(), target + e.deltaY * unit));
-    if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); }
+    if (!running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
   }
-  const stop = () => { running = false; };
+  const stop = () => { running = false; cancelAnimationFrame(raf); raf = 0; };
+  window.__stopScroll = stop;
   addEventListener('wheel', onWheel, { passive: false });
   addEventListener('pointerdown', stop, true);
   addEventListener('keydown', stop, true);
