@@ -1,0 +1,30 @@
+#badgeWrap{position:absolute;inset:0;z-index:5;pointer-events:none}
+#badgeWrap[hidden]{display:none}
+#badgeWrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:auto}
+#badgeWrap .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0}
+/* Reached by keyboard only: click the card itself with a pointer */
+#badgeFlip{position:absolute;right:24px;bottom:24px;z-index:1;padding:10px 16px;border:0;border-radius:999px;background:#F2B14C;color:#14100A;font:600 15px/1.2 "Archivo",Arial,sans-serif;cursor:pointer;opacity:0;pointer-events:none;transition:opacity 160ms ease}
+#badgeFlip:focus-visible{opacity:1;pointer-events:auto}
+/* Without WebGL */
+#badgeWrap.still{pointer-events:none}
+#badgeWrap.still img{position:absolute;display:block;border-radius:14px;box-shadow:0 0 0 7px #05070c,0 26px 56px rgba(0,0,0,.5);transform:rotate(1.2deg);transform-origin:50% 0}
+#badgeWrap.still i{position:absolute;top:0;display:block;background:linear-gradient(90deg,transparent 7%,rgba(242,177,76,.7) 7% 9%,transparent 9% 91%,rgba(242,177,76,.7) 91% 93%,transparent 93%),#0F141C}
+/* The strap passes behind the nav on narrow screens */
+body.badge-top #nav::before{opacity:1}
+
+/* The phone card: images on plain layers, moved only by transforms (proto/badge/phone-card.js) */
+.bc{position:absolute;inset:0;pointer-events:none}
+.bc-shadow{position:absolute;left:0;top:0;display:block;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.52),rgba(0,0,0,.26) 62%,transparent);will-change:transform}
+.bc-strap i{position:absolute;left:0;top:0;display:block;background-image:url(../assets/phone/strap.webp);background-repeat:repeat-y;transform-origin:50% 0;will-change:transform}
+.bc-body{position:absolute;left:0;top:0;width:0;height:0;will-change:transform}
+.bc-tilt{position:absolute;touch-action:pan-y;pointer-events:auto;cursor:grab;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;will-change:transform}
+.bc-tilt:active{cursor:grabbing}
+.bc-tilt img,.bc-back{position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none;-webkit-user-drag:none}
+.bc-back{transform:scaleX(-1)}
+.bc-wa{position:absolute;display:block;border-radius:10px;pointer-events:auto;-webkit-tap-highlight-color:rgba(242,177,76,.25)}
+.bc-foil{position:absolute;overflow:hidden;border-radius:50%;pointer-events:none}
+.bc-foil i{position:absolute;left:0;top:0;display:block;width:400%;height:100%;background:linear-gradient(100deg,#ff6fa8,#ffd166 16%,#7cf5a6 33%,#6cc0ff 50%,#b392ff 66%,#ff6fa8 83%,#ffd166);opacity:.4;will-change:transform}
+.bc-sheen{position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden;border-radius:6.4%/4.55%;pointer-events:none}
+.bc-sheen i{position:absolute;left:-60%;top:-20%;display:block;width:220%;height:140%;background:linear-gradient(108deg,transparent 36%,rgba(255,255,255,.22) 47%,rgba(255,255,255,.06) 54%,transparent 65%);will-change:transform}
+.bc-hook{position:absolute;overflow:visible;pointer-events:none}
+#badgeWrap.dom #badgeFlip{right:16px;bottom:16px}

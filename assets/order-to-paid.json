@@ -1,0 +1,30 @@
+{
+ "duration": 40.51,
+ "chapters": [
+  {
+   "name": "Purchase order",
+   "t": 0.0
+  },
+  {
+   "name": "Delivery note",
+   "t": 4.15
+  },
+  {
+   "name": "Signed copy",
+   "t": 8.77
+  },
+  {
+   "name": "Invoice",
+   "t": 15.88
+  },
+  {
+   "name": "Linked",
+   "t": 26.36
+  },
+  {
+   "name": "Paid",
+   "t": 31.23
+  }
+ ],
+ "frames": 1254
+}

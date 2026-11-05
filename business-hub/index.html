@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Hub</title>
+<meta name="description" content="Business Hub, the order-to-invoice system built by Waleed Hamid. All screens show sample data.">
+<meta name="color-scheme" content="dark">
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, root = document.documentElement;
+  const set = () => root.classList.toggle('pm', !reduce && innerWidth < 1100);
+  set(); addEventListener('resize', set);
+})();
+</script>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Business Hub | Waleed Hamid">
+<meta property="og:description" content="Business Hub, the order-to-invoice system built by Waleed Hamid. All screens show sample data.">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="../shared/fonts.css">
+<link rel="stylesheet" href="../shared/phone.css">
+<link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="../shared/motion.css">
+<link rel="icon" href="../shared/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../shared/favicon.svg">
+</head>
+<body>
+<nav id="nav" aria-label="Business Hub sections">
+  <a href="../">Main page</a><a href="#dashboard">Dashboard</a><a href="#documents">Documents</a><a href="#order">Order to paid</a><a href="#attachments">Attachments</a><a href="#master">Master Data</a><a href="#insights">Insights</a><a href="#server">Server</a>
+</nav>
+<a id="back" href="#dashboard" hidden>Back to the dashboard</a>
+<main>
+<header id="top">
+  <h1>BUSINESS HUB</h1>
+  <p>The order-to-invoice system I designed and built for my office. It links every quotation, purchase order, delivery note and invoice, and runs for the whole team on one server.</p>
+</header>
+
+<section id="dashboard" aria-labelledby="h-dash">
+  <div class="head"><h2 id="h-dash" data-type>Dashboard</h2><p>This window is live. Click any part of it to jump to that part of the system below, or switch it to dark.</p></div>
+  <div class="annot" id="dashAnnot">
+    <svg class="lines" aria-hidden="true"></svg>
+    <div class="labels"></div>
+    <div class="win">
+      <div class="bar"><span>Business Hub</span><i></i></div>
+      <div class="vp"><iframe id="dashFrame" title="Live Business Hub dashboard with sample data" tabindex="0"></iframe></div>
+    </div>
+    <div class="sample">Sample data</div>
+  </div>
+  <div class="flat-only">
+    <img src="../assets/dashboard-screen.webp" alt="Business Hub dashboard with sample data" class="shot-img" data-zoom loading="lazy" width="2200" height="1375">
+    <ul class="jumps">
+      <li><a href="#documents">Create new: the four document editors</a></li>
+      <li><a href="#order">Needs attention: how an order reaches paid</a></li>
+      <li><a href="#insights">Insights: bid outcomes and reports</a></li>
+      <li><a href="#master">Master Data: items and clients</a></li>
+      <li><a href="#server">Control Room: people and permissions</a></li>
+    </ul>
+  </div>
+</section>
+
+<section id="documents" aria-labelledby="h-docs">
+  <div class="head"><h2 id="h-docs" data-type>Documents</h2><p>Four editors that work the same way. These are the features that matter most in each one.</p></div>
+  <div id="docs"></div>
+</section>
+
+<section id="order" aria-labelledby="h-order">
+  <div class="head"><h2 id="h-order" data-type>Order to paid</h2><p>One purchase order, followed from the Arabic order to a paid invoice. Recorded in the app, with waiting time cut.</p></div>
+  <div class="player">
+    <video id="orderVideo" muted playsinline preload="none" poster="../assets/order-to-paid.jpg" aria-label="Screen recording of one purchase order going from order to paid, sample data"><source src="../assets/order-to-paid.mp4" type="video/mp4"></video>
+    <button id="orderPlay" type="button" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
+    <div class="sample in">Sample data</div>
+  </div>
+  <ol id="steps"></ol>
+  <p id="stepText" aria-live="off"></p>
+</section>
+
+<section id="attachments" aria-labelledby="h-att">
+  <div class="head"><h2 id="h-att" data-type>Attachments</h2></div>
+  <div class="split">
+    <figure class="frame"><video muted playsinline loop preload="none" poster="../assets/attachments.jpg" data-autoplay aria-label="Screen recording of the invoice attachments window, sample data"><source src="../assets/attachments.mp4" type="video/mp4"></video><div class="sample in">Sample data</div></figure>
+    <div class="copy">
+      <p>Supporting files, such as timesheets and gate passes, sit with the client-signed copy in one window on the invoice.</p>
+      <p>Paid and signed are separate states. An export combines only the files you tick, in the order shown, and the originals stay unchanged.</p>
+    </div>
+  </div>
+</section>
+
+<section id="master" aria-labelledby="h-master">
+  <div class="head"><h2 id="h-master" data-type>Master Data</h2><p>The records behind every document.</p></div>
+  <div class="two">
+    <article>
+      <figure class="frame"><video muted playsinline loop preload="none" poster="../assets/master.jpg" data-autoplay aria-label="Screen recording of the materials catalogue and its review screen, sample data"><source src="../assets/master.mp4" type="video/mp4"></video><div class="sample in">Sample data</div></figure>
+      <h3>Materials</h3>
+      <p>One record per item: name, description and unit in English and Arabic, with price and cost. A purchase order's Arabic lines find their English side here.</p>
+      <p>The review screen flags items stored twice, items that can't be told apart, and dates typed into descriptions. Nothing changes until someone confirms it.</p>
+    </article>
+    <article>
+      <figure class="frame"><img src="../assets/master-clients.webp" alt="Client record screen with sample data" data-zoom loading="lazy" width="2200" height="1375"><div class="sample in">Sample data</div></figure>
+      <h3>Clients</h3>
+      <p>One record per client, shared across companies: legal and Arabic names, tax and registration numbers, contacts, payment terms and the default receiving account.</p>
+      <p>Picking a client on a new document fills in the address and payment details from this record.</p>
+    </article>
+  </div>
+</section>
+
+<section id="insights" aria-labelledby="h-ins">
+  <div id="insTrack">
+    <div id="insPin">
+      <div class="ins-copy">
+        <h2 id="h-ins" data-type>Insights</h2>
+        <p>A year of work, by client and by month: charged, spent, profit, margin, money awaiting payment and win rate.</p>
+        <p class="dim">Keep scrolling. The charts are the real ones, drawn from the sample data.</p>
+        <div class="progress"><i id="insBar"></i></div>
+      </div>
+      <div class="frame" id="insFrameBox"><iframe id="insFrame" title="Live Insights page with sample data" tabindex="-1"></iframe><div class="sample in">Sample data</div></div>
+    </div>
+  </div>
+  <div class="flat-only"><div class="head"><p>A year of work, by client and by month: charged, spent, profit, margin, money awaiting payment and win rate.</p></div><img src="../assets/insights.webp" alt="Insights page with sample data" class="shot-img" data-zoom loading="lazy" width="2200" height="1375"></div>
+</section>
+
+<section id="server" aria-labelledby="h-srv">
+  <div class="head"><h2 id="h-srv" data-type>Server</h2><p>Several people work on one server at the same time, each in their own session. Pick a role to see what that person gets.</p></div>
+  <div id="roles" role="tablist" aria-label="Role"></div>
+  <div class="role-view">
+    <figure class="frame"><img id="roleImg" src="../assets/role-admin.webp" alt="Dashboard as seen by this role, sample data" data-zoom width="2400" height="1500"><div class="sample in">Sample data</div></figure>
+    <div id="matrix"></div>
+  </div>
+  <p class="dim note">These are each role's starting switches. Any switch can be changed per person, and the server refuses what the switches don't allow, whatever the screen shows.</p>
+  <div class="tiles">
+    <figure><button type="button" class="tile" data-zoom-src="../assets/control-room.webp"><img src="../assets/control-room.webp" alt="Control Room with sample data" loading="lazy" width="2200" height="1375"></button><figcaption><b>Control Room</b>Who is working, on which computer, and what they are doing.</figcaption></figure>
+    <figure><button type="button" class="tile" data-zoom-src="../assets/activity.webp"><img src="../assets/activity.webp" alt="Activity log with sample data" loading="lazy" width="2200" height="1375"></button><figcaption><b>Activity log</b>What each person did, and when.</figcaption></figure>
+    <figure><button type="button" class="tile" data-zoom-src="../assets/refused.webp"><img src="../assets/refused.webp" alt="Refused actions with sample data" loading="lazy" width="2200" height="1375"></button><figcaption><b>Refused actions</b>A refusal is recorded with who, where and why.</figcaption></figure>
+    <figure><button type="button" class="tile" data-zoom-src="../assets/recycle.webp"><img src="../assets/recycle.webp" alt="Recycle Bin with sample data" loading="lazy" width="2200" height="1375"></button><figcaption><b>Recycle Bin</b>Deleted documents can be restored. Permanent deletion needs its own permission.</figcaption></figure>
+  </div>
+</section>
+</main>
+<p class="iconcredit"><a href="https://lordicon.com/" rel="noopener">Animated icons by Lordicon.com</a></p>
+<dialog id="lightbox" aria-label="Enlarged screen"><button type="button" aria-label="Close">×</button><img alt=""></dialog>
+<script src="../shared/motion.js"></script>
+<script src="../shared/smooth-scroll.js"></script>
+<script src="../shared/to-top.js"></script>
+<script src="permissions.js"></script>
+<script src="page.js"></script>
+<script src="../shared/phone-icons.js"></script>
+<script src="../shared/phone-cam.js"></script>
+<script src="phone.js"></script>
+</body>
+</html>
