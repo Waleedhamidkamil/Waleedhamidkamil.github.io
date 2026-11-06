@@ -141,19 +141,21 @@ function loadDash() {
   document.head.appendChild(s);
 }
 function layoutDash() {
-  if (!WIDE()) return;
+  if (!WIDE() || !dashBox.clientWidth) return;
   const W = dashBox.clientWidth, side = Math.min(238, W * .17), w = W - side * 2, barH = 34, h = w / 1.6 + barH;
   const win = $('.win', dashBox);
   win.style.left = side + 'px'; win.style.top = '46px'; win.style.width = w + 'px'; win.style.height = h + 'px';
   const sc = w / 1600, vp = $('.vp', dashBox); vp.style.height = (w / 1.6) + 'px';
   dashFrame.style.transform = `scale(${sc})`;
   const sample = $('.sample', dashBox); sample.style.left = side + 'px'; sample.style.top = (46 + h + 8) + 'px';
+  // Geometry is useful before the lazy iframe has loaded its annotation targets.
+  dashBox.dataset.measured = '1';
   const f = dashFrame.contentWindow;
   const target = n => { if (!f || !f.dashTargets) return null; const t = f.dashTargets(n.sel); if (!t) return null; return { x: side + t.x * sc, y: 46 + barH + t.y * sc, w: t.w * sc, h: t.h * sc }; };
   if (f && f.dashTargets) {
     drawAnnot(dashBox, W, side, 46, w, h, DASH_NOTES, target);
     lineIO.observe(dashBox);
-  } else dashBox.style.height = (46 + h + 40) + 'px';
+  } else dashBox.style.height = (46 + h + 22) + 'px';
 }
 addEventListener('message', e => {
   const d = e.data || {};
@@ -168,7 +170,10 @@ function jump(hash) {
   t.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'start' });
   try { history.replaceState(null, '', hash); } catch (e) {}
 }
-backBtn.addEventListener('click', e => { e.preventDefault(); backBtn.hidden = true; $('#dashboard').scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth' }); });
+backBtn.addEventListener('click', e => {
+  e.preventDefault(); jump('#dashboard'); backBtn.hidden = true;
+  if (!e.detail) { const h = $('#h-dash'); h.tabIndex = -1; h.focus({ preventScroll: true }); }
+});
 
 /* Section 2: the four editors, one picture each */
 const R = (x, y, w, h) => ({ x, y, w, h });
@@ -206,8 +211,8 @@ const DOCS = [
 const docsEl = $('#docs');
 DOCS.forEach(d => {
   const a = document.createElement('article'); a.className = 'doc'; a.id = d.id;
-  a.innerHTML = `<h3>${d.title}</h3><div class="annot"><svg class="lines" aria-hidden="true"></svg><div class="labels"></div><div class="pic" data-zoom-src="../assets/${d.img}.webp"><img src="../assets/${d.img}.webp" alt="${d.title} editor with sample data" loading="lazy"></div><div class="sample">Sample data</div></div>
-  <img class="flat-pic" src="../assets/${d.img}.webp" width="2200" height="1375" alt="${d.title} editor with sample data" loading="lazy" data-zoom><ul class="notes-list">${d.notes.map(n => `<li><b>${n.title}</b>${n.text}</li>`).join('')}</ul>`;
+  a.innerHTML = `<h3>${d.title}</h3><div class="annot"><svg class="lines" aria-hidden="true"></svg><div class="labels"></div><button type="button" class="pic" data-zoom-src="../assets/${d.img}.webp" aria-label="Enlarge the ${d.title} editor"><img src="../assets/${d.img}.webp" alt="${d.title} editor with sample data" loading="lazy"></button><div class="sample">Sample data</div></div>
+  <button type="button" class="zoom-image flat-pic" data-zoom aria-label="Enlarge the ${d.title} editor"><img src="../assets/${d.img}.webp" width="2200" height="1375" alt="${d.title} editor with sample data" loading="lazy"></button><ul class="notes-list">${d.notes.map(n => `<li><b>${n.title}</b>${n.text}</li>`).join('')}</ul>`;
   docsEl.appendChild(a); d.box = $('.annot', a); lineIO.observe(d.box);
 });
 function layoutDocs() {
@@ -255,7 +260,24 @@ video.addEventListener('play', paintPlay); video.addEventListener('pause', paint
 playBtn.addEventListener('click', () => { if (video.paused) { userPaused = false; video.play().catch(() => {}); } else { userPaused = true; video.pause(); } });
 paintStep(); paintPlay();
 
+/* Offscreen video posters wait too: preload="none" only defers the recording itself. */
+function loadPoster(v) {
+  const src = v.dataset.poster;
+  if (!src) return;
+  v.poster = src;
+  delete v.dataset.poster;
+}
+const posterIO = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  loadPoster(e.target); posterIO.unobserve(e.target);
+}), { rootMargin: '600px 0px' });
+$$('video[data-poster]').forEach(v => {
+  posterIO.observe(v);
+  v.addEventListener('play', () => loadPoster(v), { once: true });
+});
+
 /* Videos play only while they are on screen, and never with reduced motion */
+if (REDUCE) $$('video[data-autoplay]').forEach(v => { v.controls = true; });
 const vidIO = new IntersectionObserver(es => es.forEach(e => {
   const v = e.target;
   v.dataset.visible = String(e.isIntersecting);
@@ -302,24 +324,30 @@ function paintIns() {
 const ROLE_NAMES = { admin: 'Admin', manager: 'Manager', accountant: 'Accountant', procurement: 'Procurement', storekeeper: 'Storekeeper', viewer: 'Viewer' };
 const rolesEl = $('#roles'), matrixEl = $('#matrix'), roleImg = $('#roleImg');
 const SHOW = new Set(['create_documents', 'delete_documents', 'purge_recycle_bin', 'sign_documents', 'area_quotations', 'area_purchase_orders', 'area_delivery_notes', 'area_invoices', 'area_clients', 'area_master_data', 'area_insights', 'edit_master_data', 'change_settings', 'manage_people', 'view_activity']);
-matrixEl.innerHTML = window.PERMS.groups.map(([g, rows]) => { const shown = rows.filter(r => SHOW.has(r[0])); return shown.length ? `<div><h4>${g}</h4><ul>${shown.map(r => `<li data-k="${r[0]}" title="${r[2].replace(/"/g, '&quot;')}"><svg viewBox="0 0 24 24" aria-hidden="true"></svg><span>${r[1].replace(/ recycled documents/, '')}</span></li>`).join('')}</ul></div>` : ''; }).join('');
+matrixEl.innerHTML = window.PERMS.groups.map(([g, rows]) => { const shown = rows.filter(r => SHOW.has(r[0])); return shown.length ? `<div><h3>${g}</h3><ul>${shown.map(r => `<li data-k="${r[0]}" title="${r[2].replace(/"/g, '&quot;')}"><svg viewBox="0 0 24 24" aria-hidden="true"></svg><span>${r[1].replace(/ recycled documents/, '')}</span></li>`).join('')}</ul></div>` : ''; }).join('');
 Object.keys(ROLE_NAMES).forEach(k => {
-  const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.textContent = ROLE_NAMES[k]; b.dataset.role = k;
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = ROLE_NAMES[k]; b.dataset.role = k;
   b.addEventListener('click', () => setRole(k)); rolesEl.appendChild(b);
 });
 function setRole(k) {
-  $$('#roles button').forEach(b => b.setAttribute('aria-selected', b.dataset.role === k ? 'true' : 'false'));
+  $$('#roles button').forEach(b => b.setAttribute('aria-pressed', b.dataset.role === k ? 'true' : 'false'));
   const perms = window.PERMS.roles[k];
   $$('#matrix li').forEach(li => { const on = !!perms[li.dataset.k]; li.classList.toggle('yes', on); $('svg', li).innerHTML = on ? '<path d="M5 12.5l4.5 4.5L19 7.5"/>' : '<path d="M7 12h10"/>'; const lab = $('span', li).textContent; li.setAttribute('aria-label', lab + (on ? ': allowed' : ': not allowed')); });
   roleImg.src = `../assets/role-${k}.webp`; roleImg.alt = `Dashboard as a ${ROLE_NAMES[k]} sees it, sample data`;
 }
 setRole('admin');
-if (WIDE()) Object.keys(ROLE_NAMES).forEach(k => { const i = new Image(); i.src = `../assets/role-${k}.webp`; });
+const roleIO = new IntersectionObserver(es => {
+  if (!es[0].isIntersecting || !WIDE()) return;
+  roleIO.disconnect();
+  Object.keys(ROLE_NAMES).forEach(k => { const i = new Image(); i.src = `../assets/role-${k}.webp`; });
+}, { rootMargin: '600px 0px' });
+roleIO.observe($('#server'));
 
 /* Lightbox */
 const box = $('#lightbox'), boxImg = $('img', box);
 function zoom(src, alt) { boxImg.src = src; boxImg.alt = alt || ''; box.showModal(); }
 window.__phoneZoom = zoom;
+$$('button[data-zoom]').forEach(b => { if (!b.hasAttribute('aria-label')) b.setAttribute('aria-label', 'Enlarge ' + $('img', b).alt); });
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-zoom],[data-zoom-src]'); if (!t) return;
   const img = t.tagName === 'IMG' ? t : $('img', t); zoom(t.dataset.zoomSrc || img.src, img.alt);
@@ -339,9 +367,10 @@ $$('main section').forEach(s => navIO.observe(s));
 
 /* Load the two live pages when they get close, not with the page */
 const nearIO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { nearIO.unobserve(e.target); e.target === dashBox ? loadDash() : loadIns(); } }), { rootMargin: '900px 0px' });
-if (WIDE()) { nearIO.observe(dashBox); nearIO.observe(insTrack); }
+function watchLive() { if (WIDE()) { if (!dashLoaded) nearIO.observe(dashBox); if (!insLoaded) nearIO.observe(insTrack); } }
+watchLive();
 
-function layoutAll() { layoutDash(); layoutDocs(); layoutIns(); }
+function layoutAll() { watchLive(); layoutDash(); layoutDocs(); layoutIns(); }
 let rt = 0; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layoutAll, 140); });
 document.fonts && document.fonts.ready.then(layoutAll);
 layoutAll();

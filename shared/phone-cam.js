@@ -192,7 +192,7 @@ window.PhoneCam = (() => {
      screens: { key: { src, world?, dark? } }  tabs: [{ label, hue }] */
   class Deck {
     constructor(host, o) {
-      this.o = o; this.stops = o.stops; this.i = -1; this.auto = o.auto !== false; this.visible = false; this.layers = {}; this.tab = -1;
+      this.o = o; this.stops = o.stops; this.i = -1; this.auto = o.auto !== false; this.userControlled = false; this.visible = false; this.layers = {}; this.tab = -1;
       const scene = this.root = el('div', 'pscene');
       if (o.hue) scene.style.setProperty('--h', o.hue);
       if (o.tabs) {
@@ -214,7 +214,8 @@ window.PhoneCam = (() => {
       if (o.dark) themeSwitch(this.win.bar, d => this.setDark(d));
       host.appendChild(scene);
       this.bindSwipe();
-      this.io = new IntersectionObserver(es => { const v = es[0].isIntersecting; if (v === this.visible) return; this.visible = v; if (v && !this.seen) this.first(); if (v) this.auto = o.auto !== false; this.tick(); }, { threshold: .45 });
+      scene.addEventListener('focusin', () => this.user());
+      this.io = new IntersectionObserver(es => { const v = es[0].isIntersecting; if (v === this.visible) return; this.visible = v; if (v && !this.seen) this.first(); if (v) this.auto = o.auto !== false && !this.userControlled && !scene.contains(document.activeElement); else this.userControlled = false; this.tick(); }, { threshold: .45 });
       this.io.observe(this.win.root);
       addEventListener('motionchange', () => this.tick());
       document.addEventListener('visibilitychange', () => this.tick());
@@ -322,7 +323,7 @@ window.PhoneCam = (() => {
       if (this.capA) { if (s.href) { this.capA.hidden = false; this.capA.href = s.href; this.capA.textContent = s.link; } else this.capA.hidden = true; }
       if (animate && !REDUCE && !window.__motionPaused) this.cap.animate([{ opacity: 0, transform: 'translate3d(0,6px,0)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: 'cubic-bezier(.22,.8,.2,1)' });
     }
-    user() { this.auto = false; this.tick(); }
+    user() { this.userControlled = true; this.auto = false; this.tick(); }
     // The current step fills while it is on show, and the fill runs the deck
     tick() {
       const seg = this.segs && this.segs.find(g => g.k === this.i);
@@ -386,16 +387,16 @@ window.PhoneCam = (() => {
       if (o.hue) scene.style.setProperty('--h', o.hue);
       this.win = makeWindow(scene, { hue: o.hue, title: o.title });
       const l = addLayer(this.win.vp); this.world = l.world; this.size = l.size;
-      const v = this.video = el('video'); v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'none'; v.poster = o.poster; v.setAttribute('aria-label', o.label); if (o.loop) v.loop = true;
+      const v = this.video = el('video'); v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'none'; v.dataset.poster = o.poster; v.setAttribute('aria-label', o.label); if (o.loop) v.loop = true;
       v.innerHTML = `<source src="${o.src}" type="video/mp4">`;
       this.world.appendChild(v);
       this.btn = el('button', 'pbar-btn', SVG.pause); this.btn.type = 'button';
-      this.btn.addEventListener('click', () => { if (v.paused) { this.userPaused = false; this.play(); } else { this.userPaused = true; v.pause(); } });
+      this.btn.addEventListener('click', () => { if (v.paused) { this.userPaused = false; this.play(true); } else { this.userPaused = true; v.pause(); } });
       this.win.bar.appendChild(this.btn);
       this.rail = el('ol', 'prail'); scene.appendChild(this.rail);
       this.segs = this.steps.map((s, k) => {
         const li = el('li', '', `<button type="button" aria-label="${s.name}"><i></i></button>`);
-        li.firstChild.addEventListener('click', () => { this.userPaused = false; try { v.currentTime = s.t + .02; } catch (x) {} this.play(); });
+        li.firstChild.addEventListener('click', () => { this.userPaused = false; try { v.currentTime = s.t + .02; } catch (x) {} this.play(true); });
         this.rail.appendChild(li);
         return { btn: li.firstChild, bar: li.firstChild.firstChild };
       });
@@ -403,6 +404,8 @@ window.PhoneCam = (() => {
       this.capT = this.cap.querySelector('h3'); this.capP = this.cap.querySelector('p');
       const list = el('ul', 'sr'); this.steps.forEach(s => list.appendChild(el('li', '', `${s.name}: ${s.text}`))); scene.appendChild(list);
       host.appendChild(scene);
+      this.posterIO = new IntersectionObserver(es => { if (es[0].isIntersecting) { this.loadPoster(); this.posterIO.disconnect(); } }, { rootMargin: '600px 0px' });
+      this.posterIO.observe(this.win.root);
       const paint = () => { this.btn.innerHTML = v.paused ? SVG.play : SVG.pause; this.btn.setAttribute('aria-label', v.paused ? 'Play' : 'Pause'); };
       v.addEventListener('play', () => { paint(); this.loop(); }); v.addEventListener('pause', paint); paint();
       ['seeked', 'loadeddata'].forEach(n => v.addEventListener(n, () => this.paint()));
@@ -414,7 +417,8 @@ window.PhoneCam = (() => {
       document.addEventListener('visibilitychange', () => this.sync());
       this.measure(); this.paint();
     }
-    play() { if (REDUCE || window.__motionPaused || document.hidden) return; this.video.preload = 'auto'; const p = this.video.play(); p && p.catch(() => {}); this.loop(); }
+    loadPoster() { const src = this.video.dataset.poster; if (src) { this.video.poster = src; delete this.video.dataset.poster; } }
+    play(manual = false) { if (REDUCE || !manual && window.__motionPaused || document.hidden) return; this.loadPoster(); this.video.preload = 'auto'; const p = this.video.play(); p && p.catch(() => {}); this.loop(); }
     sync() {
       if (this.visible && !this.userPaused && !window.__motionPaused && !document.hidden && !REDUCE) this.play();
       else this.video.pause();
@@ -439,12 +443,12 @@ window.PhoneCam = (() => {
     bindSwipe() {
       const vp = this.win.vp; let d = null;
       vp.addEventListener('pointerdown', e => { if (e.button > 0) return; d = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId }; });
-      const seek = n => { const s = this.steps[clamp(n, 0, this.steps.length - 1)]; try { this.video.currentTime = s.t + .02; } catch (x) {} this.userPaused = false; this.play(); };
+      const seek = n => { const s = this.steps[clamp(n, 0, this.steps.length - 1)]; try { this.video.currentTime = s.t + .02; } catch (x) {} this.userPaused = false; this.play(true); };
       vp.addEventListener('pointerup', e => {
         if (!d || e.pointerId !== d.id) return;
         const dx = e.clientX - d.x, dy = e.clientY - d.y, dt = performance.now() - d.t; d = null;
         if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy)) { seek(this.now + (dx < 0 ? 1 : -1)); return; }
-        if (dt < 450 && Math.abs(dx) < 8 && Math.abs(dy) < 8) { if (this.video.paused) { this.userPaused = false; this.play(); } else { this.userPaused = true; this.video.pause(); } }
+        if (dt < 450 && Math.abs(dx) < 8 && Math.abs(dy) < 8) { if (this.video.paused) { this.userPaused = false; this.play(true); } else { this.userPaused = true; this.video.pause(); } }
       });
       vp.addEventListener('pointercancel', () => { d = null; });
     }

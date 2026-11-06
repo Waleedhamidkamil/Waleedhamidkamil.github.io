@@ -36,6 +36,7 @@ p{text-wrap:pretty}
 #sample.tourmode{opacity:0!important}
 #labels.off .note{pointer-events:none!important}
 #labels .note.linked{cursor:pointer}
+#labels .note.linked>a{display:block;color:inherit;text-decoration:none}
 #labels .note.linked b::after{content:" \2192";color:var(--amber)}
 @media (hover:hover) and (pointer:fine){#labels .note.linked:hover b{color:var(--amber)}}
 
@@ -203,7 +204,7 @@ dialog button{position:sticky;float:right;top:10px;margin:10px 10px -46px 0;widt
 
 /* Phones and small windows. `narrow` is the size, `pm` is the size with motion allowed. DESIGN.md has the rules. */
 /* Until the hero has measured itself, none of its parts show in the wrong place */
-.narrow:not(.hero-on) #intro,.narrow:not(.hero-on) #head{visibility:hidden}
+html.js:not(.hero-on) #intro,html.js:not(.hero-on) #head,html.js:not(.hero-on) #live{visibility:hidden}
 .pm #join span{opacity:0}
 #svhProbe{position:fixed;left:0;top:0;width:0;height:100vh;height:100svh;visibility:hidden;pointer-events:none}
 .short{display:none}

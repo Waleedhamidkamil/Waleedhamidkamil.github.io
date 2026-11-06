@@ -9,6 +9,8 @@
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, root = document.documentElement;
+  root.classList.add('js');
+  root.classList.toggle('flat', reduce);
   window.__isNarrow = () => innerWidth < 1000 || innerHeight < 620;
   window.__isPhone = () => !reduce && __isNarrow();
   // The hero runs over 5.2 screens on a desktop. On a phone the run through the D takes less than one.
@@ -96,6 +98,7 @@ h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);w
 <link rel="stylesheet" href="main.css">
 <link rel="canonical" href="https://waleedhamid.me/">
 <meta property="og:url" content="https://waleedhamid.me/">
+<link rel="preload" as="image" href="assets/phone/card-front.webp" type="image/webp" fetchpriority="high" media="(max-width:999px), (max-height:619px), (pointer:coarse)">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -157,10 +160,11 @@ h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);w
 <link rel="stylesheet" href="badge/badge.css">
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to content</a>
 <nav id="nav" class="frost" aria-label="Main">
   <a id="navHub" href="#business-hub">Business Hub</a><a href="#certificates">Certificates</a><a href="#contact">Contact</a>
 </nav>
-<main>
+<main id="main-content" tabindex="-1">
 <section id="stage" aria-labelledby="name">
   <i id="svhProbe" aria-hidden="true"></i>
   <div id="pin">
@@ -641,8 +645,9 @@ function setupGL() {
   gl.uniform1i(U.uA, 0);
 }
 const flat = $('#flat'), fx = flat.getContext('2d');
-let sizedW = 0, sizedH = 0;
+let sizedW = 0, sizedH = 0, layoutReady = false;
 function size() {
+  if (!layoutReady) return;
   narrowNow = !!(window.__isNarrow && window.__isNarrow()); phoneNow = !!(window.__isPhone && window.__isPhone());
   // The address bar sliding away on a phone fires resize. Nothing depends on it, and the rebuild is costly and would blank the canvas.
   if (NARROW() && sizedW === innerWidth && Math.abs(sizedH - innerHeight) < 170) return;
@@ -743,8 +748,9 @@ const imgReady = NARROW() ? Promise.resolve() : img.decode ? img.decode().catch(
 // When the picture arrives later, the window's painted copy gets it
 img.addEventListener('load', () => { if (NARROW() && sizedW) { buildWindow(); dirty = true; } });
 Promise.all([ready, imgReady]).then(() => {
-  // The stacked phone layout measures the text, so it has to be there first
-  if (NARROW()) todoEl.textContent = HEAD;
+  // Every layout measures the intro height, including desktop and reduced motion.
+  todoEl.textContent = HEAD;
+  layoutReady = true;
   size();
   document.documentElement.classList.add('hero-on');
   startedAt = performance.now();

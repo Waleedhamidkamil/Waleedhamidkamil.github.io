@@ -39,7 +39,7 @@
       } catch (_) {}
     });
   }
-  function apply() {
+  function apply(persist = true) {
     window.__motionPaused = paused;
     document.documentElement.classList.toggle('motion-paused', paused);
     button.setAttribute('aria-pressed', String(paused));
@@ -65,7 +65,7 @@
     }
     frames();
     dispatchEvent(new CustomEvent('motionchange', { detail: { paused } }));
-    try { sessionStorage.setItem('portfolio-motion-paused', String(paused)); } catch (_) {}
+    if (persist) { try { sessionStorage.setItem('portfolio-motion-paused', String(paused)); } catch (_) {} }
   }
   button.addEventListener('click', event => { event.preventDefault(); paused = !paused; apply(); });
   button.addEventListener('keydown', event => {
@@ -79,6 +79,13 @@
     else if (!paused) visibleMedia.forEach(video => {
       if (video.dataset.resumeVisibility === 'true') video.play().catch(() => {});
     });
+  });
+  // Scene geometry is chosen at startup. Rebuild in the new preference while
+  // preserving the visitor's separate manual Pause setting in session storage.
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  reduced.addEventListener('change', () => {
+    if (reduced.matches) { paused = true; apply(false); }
+    location.reload();
   });
   apply();
 })();

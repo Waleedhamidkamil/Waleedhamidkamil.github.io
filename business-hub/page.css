@@ -38,11 +38,17 @@ h3{margin:18px 0 6px;font-size:21px;font-weight:600}
 .frame{position:relative;margin:0;border-radius:12px;overflow:hidden;background:#EEF2F8;aspect-ratio:1.6;box-shadow:0 0 0 1px rgba(237,241,246,.14),0 26px 60px rgba(0,0,0,.45)}
 .frame img,.frame video{width:100%;height:100%;object-fit:cover;object-position:top}
 [data-zoom],.tile{cursor:zoom-in}
+.zoom-image{display:block;width:100%;padding:0;border:0;background:none;color:inherit;border-radius:12px}
+.frame>.zoom-image{height:100%}
+.zoom-image>img{width:100%}
 .sample{font:400 12px/1.4 var(--mono);color:var(--mute)}
 .sample.in{position:absolute;right:10px;bottom:9px;padding:4px 10px;border-radius:999px;color:var(--white);background:rgba(8,11,17,.82);box-shadow:inset 0 0 0 1px var(--line);pointer-events:none}
 
 /* Annotated windows */
 .annot{position:relative;margin:0 auto;max-width:1560px}
+/* Hold the dashboard's final base room before JS measures its side columns. */
+#dashAnnot::before{content:"";display:block;padding-top:calc((100% - min(34%,476px)) / 1.6 + 102px)}
+#dashAnnot:not([data-measured])>.win,#dashAnnot:not([data-measured])>.sample{visibility:hidden}
 .annot .lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:3}
 .annot .lines path{fill:none;stroke:var(--sketch);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke-width 140ms ease,opacity 200ms ease}
 .annot .lines path.dim{opacity:.35}
@@ -60,7 +66,7 @@ a.note b::after{content:" \2192";color:var(--sketch)}
 .win .vp{position:relative;overflow:hidden}
 .win iframe{position:absolute;left:0;top:0;width:1600px;height:1000px;border:0;transform-origin:0 0;background:#F4F6FB}
 .annot .sample{position:absolute}
-.annot .pic{position:absolute;border-radius:12px;overflow:hidden;background:#EEF2F8;box-shadow:0 0 0 1px rgba(237,241,246,.16),0 26px 60px rgba(0,0,0,.5);cursor:zoom-in}
+.annot .pic{position:absolute;padding:0;border:0;border-radius:12px;overflow:hidden;background:#EEF2F8;box-shadow:0 0 0 1px rgba(237,241,246,.16),0 26px 60px rgba(0,0,0,.5);cursor:zoom-in}
 .annot .pic img{width:100%;height:100%;object-fit:cover;object-position:top}
 .doc{margin:0 auto clamp(40px,8vh,84px)}
 .doc>h3{text-align:center;font-size:clamp(23px,2.3vw,32px);font-weight:800;font-stretch:112%;margin:0 0 14px}
@@ -102,12 +108,12 @@ a.note b::after{content:" \2192";color:var(--sketch)}
 #roles{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin:0 auto 14px}
 #roles button{padding:8px 15px;border:0;border-radius:999px;background:var(--slab);color:var(--mute);font:500 15px/1.2 var(--display);cursor:pointer;box-shadow:inset 0 0 0 1px var(--line);transition:background-color 160ms ease,color 160ms ease,transform 140ms var(--ease)}
 #roles button:active{transform:scale(.97)}
-#roles button[aria-selected=true]{background:var(--white);color:#101520;box-shadow:none}
+#roles button[aria-pressed=true]{background:var(--white);color:#101520;box-shadow:none}
 .role-view{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:clamp(16px,2.4vw,36px);align-items:start;max-width:1400px;margin:0 auto}
 #matrix{display:grid;gap:12px;font-size:15px}
-#matrix h4{margin:0 0 3px;font:400 12px/1.4 var(--mono);color:#9FB2C9}
+#matrix h3{margin:0 0 3px;font:400 12px/1.4 var(--mono);color:#9FB2C9}
 #matrix ul{list-style:none;margin:0;padding:0;display:grid;gap:1px}
-#matrix li{display:flex;align-items:center;gap:8px;line-height:1.3;color:#6F7A8B;transition:color 180ms ease}
+#matrix li{display:flex;align-items:center;gap:8px;line-height:1.3;color:var(--mute);transition:color 180ms ease}
 #matrix li svg{flex:none;width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 #matrix li.yes{color:var(--white)}
 #matrix li.yes svg{color:#6FD08C}
@@ -187,7 +193,7 @@ html.pm{scroll-padding-top:0}
 .pm .role-view .frame img{object-position:0 0;object-fit:cover;width:auto;height:100%;max-width:none}
 .pm #matrix{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;font-size:13.5px}
 .pm #matrix>div:nth-child(2){grid-row:span 2}
-.pm #matrix h4{font-size:10.5px;margin-bottom:2px}
+.pm #matrix h3{font-size:10.5px;margin-bottom:2px}
 .pm #matrix ul{gap:0}
 .pm #matrix li{gap:6px;min-height:20px}
 .pm #matrix li svg{width:13px;height:13px}

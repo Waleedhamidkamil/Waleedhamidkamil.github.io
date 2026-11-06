@@ -22,9 +22,9 @@ window.PhoneCard = (() => {
       <div class="bc-body">
         <div class="bc-tilt">
           <img class="bc-edge" src="${PATH}card-shape.webp" alt="" draggable="false">
-          <img class="bc-front" src="${PATH}card-front.webp" alt="" draggable="false">
+          <img class="bc-front" fetchpriority="high" decoding="async" src="${PATH}card-front.webp" alt="" draggable="false">
           <div class="bc-foil" style="left:${foil.l * 100}%;top:${foil.t * 100}%;width:${foil.w * 100}%;height:${foil.h * 100}%"><i></i></div>
-          <div class="bc-back"><img src="${PATH}card-back.webp" alt="" draggable="false"><a class="bc-wa" href="${WHATSAPP}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp" tabindex="-1" style="left:${qr.l * 100}%;top:${qr.t * 100}%;width:${qr.w * 100}%;height:${qr.h * 100}%"></a></div>
+          <div class="bc-back"><img fetchpriority="low" decoding="async" src="${PATH}card-back.webp" alt="" draggable="false"><a class="bc-wa" href="${WHATSAPP}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp" tabindex="-1" style="left:${qr.l * 100}%;top:${qr.t * 100}%;width:${qr.w * 100}%;height:${qr.h * 100}%"></a></div>
           <div class="bc-sheen"><i></i></div>
         </div>
         <svg class="bc-hook" viewBox="0 0 60 96" aria-hidden="true"><defs><linearGradient id="bcMetal" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#7f858f"/><stop offset=".34" stop-color="#f3f5f8"/><stop offset=".62" stop-color="#bfc4cc"/><stop offset="1" stop-color="#777c85"/></linearGradient></defs>
@@ -45,6 +45,7 @@ window.PhoneCard = (() => {
     let time = 0, acc = 0, last = 0, raf = 0, flipTime = 0, nextFlip = 0, frontHold = true, backHold = false, spinning = false;
     let grab = null, press = null, active = true, paused = !!window.__motionPaused, started = false, alive = true;
     let sx = 0, lastVx = 0, showingBack = false, calm = 0;
+    let backDecoded = false, pendingFlip = false;
 
     function configure() {
       view = { w: Math.max(1, wrap.clientWidth), h: Math.max(1, wrap.clientHeight) };
@@ -162,11 +163,18 @@ window.PhoneCard = (() => {
       }
     }
     function flip(spin = 9) {
+      if (turn === 0 && !backDecoded) return;
       const dir = turn > 0 ? -1 : 1;
       turn = turn === 0 ? Math.PI * dir : 0;
       yv += spin * dir;
-      if (reduced) { yaw = turn; yv = 0; draw(); return; }
+      if (reduced || paused) { yaw = turn; yv = 0; draw(); return; }
       start();
+    }
+    function manualFlip() {
+      spinning = false; frontHold = true; backHold = false;
+      if (turn === 0 && !backDecoded) { pendingFlip = !pendingFlip; return; }
+      pendingFlip = false;
+      flip();
     }
     function tick(now) {
       raf = 0;
@@ -203,7 +211,7 @@ window.PhoneCard = (() => {
     const release = e => {
       if (!grab || e.pointerId !== grab.id) return;
       grab = null;
-      if (press && e.type === 'pointerup' && performance.now() - press.t < 450) flip();
+      if (press && e.type === 'pointerup' && performance.now() - press.t < 450) manualFlip();
       press = null;
       start();
     };
@@ -218,8 +226,16 @@ window.PhoneCard = (() => {
     back.style.visibility = 'hidden';
     if (spot) draw();
     box.style.visibility = 'hidden';
+    box.hidden = true;
 
-    const ready = Promise.all([front, $('.bc-back img')].map(i => i.decode ? i.decode().catch(() => {}) : Promise.resolve()));
+    const decode = i => i.decode ? i.decode().catch(() => {}) : Promise.resolve();
+    // The front can enter as soon as it is painted. A slow hidden back never holds it up.
+    const ready = decode(front);
+    const backImage = $('.bc-back img');
+    decode(backImage).then(() => {
+      backDecoded = backImage.naturalWidth > 0;
+      if (alive && backDecoded && pendingFlip) { pendingFlip = false; manualFlip(); }
+    });
     return {
       ready,
       canvas: tilt,
@@ -227,14 +243,15 @@ window.PhoneCard = (() => {
         if (started || !spot) return;
         started = true;
         place(withIntro && !reduced);
-        box.style.visibility = '';
+        box.hidden = !active;
+        box.style.visibility = active ? '' : 'hidden';
         draw();
         start();
       },
       setLift(v) { if (v !== lift) { lift = v; start(); } },
-      setActive(v) { active = v; box.style.visibility = v && started ? '' : 'hidden'; if (v) start(); else if (raf) { cancelAnimationFrame(raf); raf = 0; grab = null; } },
+      setActive(v) { active = v; box.hidden = !v || !started; box.style.visibility = v && started ? '' : 'hidden'; if (v) start(); else if (raf) { cancelAnimationFrame(raf); raf = 0; grab = null; } },
       setPaused(v) { paused = v; if (paused && raf) { cancelAnimationFrame(raf); raf = 0; grab = null; } else if (!paused) start(); },
-      flip() { spinning = false; frontHold = true; backHold = false; flip(); },
+      flip: manualFlip,
       resize() { configure(); if (spot) { place(false); if (started) draw(); } },
       state: () => ({ x: nodes[NODES].x, y: nodes[NODES].y, twist: yaw, turn, grab: !!grab, ratio: 1, started, active, calm }),
       screenBox() {

@@ -27,11 +27,12 @@
 <link rel="apple-touch-icon" href="../shared/apple-touch-icon.png" sizes="180x180">
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to content</a>
 <nav id="nav" aria-label="Business Hub sections">
   <a href="../">Main page</a><a href="#dashboard">Dashboard</a><a href="#documents">Documents</a><a href="#order">Order to paid</a><a href="#attachments">Attachments</a><a href="#master">Master Data</a><a href="#insights">Insights</a><a href="#server">Server</a>
 </nav>
 <a id="back" href="#dashboard" hidden>Back to the dashboard</a>
-<main>
+<main id="main-content" tabindex="-1">
 <header id="top">
   <h1>BUSINESS HUB</h1>
   <p>The order-to-invoice system I designed and built for my office. It links every quotation, purchase order, delivery note and invoice, and runs for the whole team on one server.</p>
@@ -49,7 +50,7 @@
     <div class="sample">Sample data</div>
   </div>
   <div class="flat-only">
-    <img src="../assets/dashboard-screen.webp" alt="Business Hub dashboard with sample data" class="shot-img" data-zoom loading="lazy" width="2200" height="1375">
+    <button type="button" class="zoom-image" data-zoom><img src="../assets/dashboard-screen.webp" alt="Business Hub dashboard with sample data" class="shot-img" loading="lazy" width="2200" height="1375"></button>
     <ul class="jumps">
       <li><a href="#documents">Create new: the four document editors</a></li>
       <li><a href="#order">Needs attention: how an order reaches paid</a></li>
@@ -68,7 +69,7 @@
 <section id="order" aria-labelledby="h-order">
   <div class="head"><h2 id="h-order" data-type>Order to paid</h2><p>One purchase order, followed from the Arabic order to a paid invoice. Recorded in the app, with waiting time cut.</p></div>
   <div class="player">
-    <video id="orderVideo" muted playsinline preload="none" poster="../assets/order-to-paid.jpg" aria-label="Screen recording of one purchase order going from order to paid, sample data"><source src="../assets/order-to-paid.mp4" type="video/mp4"></video>
+    <video id="orderVideo" muted playsinline preload="none" data-poster="../assets/order-to-paid.jpg" aria-label="Screen recording of one purchase order going from order to paid, sample data"><source src="../assets/order-to-paid.mp4" type="video/mp4"></video>
     <button id="orderPlay" type="button" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
     <div class="sample in">Sample data</div>
   </div>
@@ -79,7 +80,7 @@
 <section id="attachments" aria-labelledby="h-att">
   <div class="head"><h2 id="h-att" data-type>Attachments</h2></div>
   <div class="split">
-    <figure class="frame"><video muted playsinline loop preload="none" poster="../assets/attachments.jpg" data-autoplay aria-label="Screen recording of the invoice attachments window, sample data"><source src="../assets/attachments.mp4" type="video/mp4"></video><div class="sample in">Sample data</div></figure>
+    <figure class="frame"><video muted playsinline loop preload="none" data-poster="../assets/attachments.jpg" data-autoplay aria-label="Screen recording of the invoice attachments window, sample data"><source src="../assets/attachments.mp4" type="video/mp4"></video><div class="sample in">Sample data</div></figure>
     <div class="copy">
       <p>Supporting files, such as timesheets and gate passes, sit with the client-signed copy in one window on the invoice.</p>
       <p>Paid and signed are separate states. An export combines only the files you tick, in the order shown, and the originals stay unchanged.</p>
@@ -91,13 +92,13 @@
   <div class="head"><h2 id="h-master" data-type>Master Data</h2><p>The records behind every document.</p></div>
   <div class="two">
     <article>
-      <figure class="frame"><video muted playsinline loop preload="none" poster="../assets/master.jpg" data-autoplay aria-label="Screen recording of the materials catalogue and its review screen, sample data"><source src="../assets/master.mp4" type="video/mp4"></video><div class="sample in">Sample data</div></figure>
+      <figure class="frame"><video muted playsinline loop preload="none" data-poster="../assets/master.jpg" data-autoplay aria-label="Screen recording of the materials catalogue and its review screen, sample data"><source src="../assets/master.mp4" type="video/mp4"></video><div class="sample in">Sample data</div></figure>
       <h3>Materials</h3>
       <p>One record per item: name, description and unit in English and Arabic, with price and cost. A purchase order's Arabic lines find their English side here.</p>
       <p>The review screen flags items stored twice, items that can't be told apart, and dates typed into descriptions. Nothing changes until someone confirms it.</p>
     </article>
     <article>
-      <figure class="frame"><img src="../assets/master-clients.webp" alt="Client record screen with sample data" data-zoom loading="lazy" width="2200" height="1375"><div class="sample in">Sample data</div></figure>
+      <figure class="frame"><button type="button" class="zoom-image" data-zoom><img src="../assets/master-clients.webp" alt="Client record screen with sample data" loading="lazy" width="2200" height="1375"></button><div class="sample in">Sample data</div></figure>
       <h3>Clients</h3>
       <p>One record per client, shared across companies: legal and Arabic names, tax and registration numbers, contacts, payment terms and the default receiving account.</p>
       <p>Picking a client on a new document fills in the address and payment details from this record.</p>
@@ -117,14 +118,14 @@
       <div class="frame" id="insFrameBox"><iframe id="insFrame" title="Live Insights page with sample data" tabindex="-1"></iframe><div class="sample in">Sample data</div></div>
     </div>
   </div>
-  <div class="flat-only"><div class="head"><p>A year of work, by client and by month: charged, spent, profit, margin, money awaiting payment and win rate.</p></div><img src="../assets/insights.webp" alt="Insights page with sample data" class="shot-img" data-zoom loading="lazy" width="2200" height="1375"></div>
+  <div class="flat-only"><div class="head"><h2 data-type>Insights</h2><p>A year of work, by client and by month: charged, spent, profit, margin, money awaiting payment and win rate.</p></div><button type="button" class="zoom-image" data-zoom><img src="../assets/insights.webp" alt="Insights page with sample data" class="shot-img" loading="lazy" width="2200" height="1375"></button></div>
 </section>
 
 <section id="server" aria-labelledby="h-srv">
   <div class="head"><h2 id="h-srv" data-type>Server</h2><p>Several people work on one server at the same time, each in their own session. Pick a role to see what that person gets.</p></div>
-  <div id="roles" role="tablist" aria-label="Role"></div>
+  <div id="roles" role="group" aria-label="Role"></div>
   <div class="role-view">
-    <figure class="frame"><img id="roleImg" src="../assets/role-admin.webp" alt="Dashboard as seen by this role, sample data" data-zoom width="2400" height="1500"><div class="sample in">Sample data</div></figure>
+    <figure class="frame"><button type="button" class="zoom-image" data-zoom><img id="roleImg" src="../assets/role-admin.webp" alt="Dashboard as seen by this role, sample data" loading="lazy" width="2400" height="1500"></button><div class="sample in">Sample data</div></figure>
     <div id="matrix"></div>
   </div>
   <p class="dim note">These are each role's starting switches. Any switch can be changed per person, and the server refuses what the switches don't allow, whatever the screen shows.</p>
@@ -135,8 +136,8 @@
     <figure><button type="button" class="tile" data-zoom-src="../assets/recycle.webp"><img src="../assets/recycle.webp" alt="Recycle Bin with sample data" loading="lazy" width="2200" height="1375"></button><figcaption><b>Recycle Bin</b>Deleted documents can be restored. Permanent deletion needs its own permission.</figcaption></figure>
   </div>
 </section>
-</main>
 <p class="iconcredit"><a href="https://lordicon.com/" rel="noopener">Animated icons by Lordicon.com</a></p>
+</main>
 <dialog id="lightbox" aria-label="Enlarged screen"><button type="button" aria-label="Close">×</button><img alt=""></dialog>
 <script src="../shared/motion.js"></script>
 <script src="../shared/smooth-scroll.js"></script>

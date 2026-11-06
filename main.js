@@ -61,9 +61,9 @@ new MutationObserver(() => {
     el.dataset.seen = '1';
     const t = $('b', el) && $('b', el).textContent, h = NOTE_LINKS[t];
     if (!h) return;
-    el.classList.add('linked'); el.tabIndex = 0; el.setAttribute('role', 'link');
-    el.addEventListener('click', () => go(h));
-    el.addEventListener('keydown', e => { if (e.key === 'Enter') go(h); });
+    el.classList.add('linked');
+    const link = document.createElement('a'); link.href = HUB + h;
+    link.append(...el.childNodes); el.appendChild(link);
   });
 }).observe(labels, { childList: true });
 
@@ -625,6 +625,14 @@ function cRender(dt) {
 idle();
 showEdges();
 cLayout();
+// Tab out of the filters must reach the courses without requiring a scroll gesture.
+const courseFilters = $('#cChips');
+courseFilters.addEventListener('keydown', e => {
+  if (e.key !== 'Tab' || e.shiftKey || e.target !== courseFilters.lastElementChild || isCourseFlat()) return;
+  const r = cTrack.getBoundingClientRect();
+  cProg = 1; cRender(16);
+  scrollTo({ top: scrollY + r.top + Math.max(0, r.height - innerHeight), behavior: 'instant' });
+});
 let cSizedW = innerWidth, cSizedH = innerHeight;
 addEventListener('resize', () => {
   if (TAPS && innerWidth === cSizedW && Math.abs(innerHeight - cSizedH) < 170) return;

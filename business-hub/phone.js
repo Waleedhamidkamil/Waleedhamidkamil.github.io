@@ -8,7 +8,7 @@
   const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const isPm = () => innerWidth < 1100;
   const A = '../assets/';
-  let built = false;
+  let built = false, documentDeck = null;
   const parts = [];
 
   function host(sectionId, after) {
@@ -31,7 +31,7 @@
     if (window.__motionPaused) return;
     const go = (e, x) => e.animate([{ transform: `translate3d(${x}vw,0,0)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 900, easing: 'cubic-bezier(.16,1,.3,1)' });
     go(a, -70); go(b, 70);
-    $('#top p').animate([{ opacity: 0, transform: 'translate3d(0,8px,0)' }, { opacity: 1, transform: 'none' }], { duration: 500, delay: 420, easing: 'ease-out', fill: 'backwards' });
+    $('#top p').animate([{ transform: 'translate3d(0,8px,0)' }, { transform: 'none' }], { duration: 500, easing: 'ease-out' });
   }
 
   function dashboard() {
@@ -61,7 +61,18 @@
         stops.push({ screen: d.img, tab: k, rect: n.r, side: n.r.y > 760 ? 'top' : 'bottom', title: n.title, text: n.text, href: n.href, link: n.href ? 'See it' : '' });
       });
     });
-    parts.push(linked(new Deck(host('documents', '.head'), { hue: hues['doc-quote'], tabs, tabsLabel: 'Documents', stops, screens, expand: true })));
+    documentDeck = linked(new Deck(host('documents', '.head'), { hue: hues['doc-quote'], tabs, tabsLabel: 'Documents', stops, screens, expand: true }));
+    parts.push(documentDeck);
+  }
+
+  // Desktop editor anchors live in hidden markup on phones. Keep their URLs, but visit the visible scene and matching editor.
+  function documentHash() {
+    if (!isPm() || !documentDeck) return;
+    const tab = B.DOCS.findIndex(d => '#' + d.id === location.hash);
+    if (tab < 0) return;
+    documentDeck.user();
+    documentDeck.go(documentDeck.stops.findIndex(s => s.tab === tab), { instant: true });
+    document.getElementById('documents').scrollIntoView({ behavior: 'instant', block: 'start' });
   }
 
   function order() {
@@ -182,9 +193,11 @@
     insights();
     server();
     reveal();
+    requestAnimationFrame(documentHash);
     addEventListener('resize', () => { clearTimeout(build.t); build.t = setTimeout(() => parts.forEach(p => { if (p.root && p.root.offsetParent) p.resize(); }), 180); });
   }
   if (isPm()) build();
+  addEventListener('hashchange', documentHash);
   addEventListener('resize', () => { if (isPm()) build(); });
   window.__bhPhone = { built: () => built, parts: () => parts };
 })();

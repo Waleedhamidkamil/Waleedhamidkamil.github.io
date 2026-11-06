@@ -16,6 +16,9 @@
   wrap.id = 'badgeWrap';
   wrap.innerHTML = '<p class="sr">ID card: Waleed Hamid Kamil. ERP specialist, SAP S/4HANA and SAP Ariba. Born 22 July 1996. Basra, Iraq. The back has public contact details and a QR code that opens WhatsApp at +9647804482013.</p><button type="button" id="badgeFlip">Flip the ID card</button>';
   pin.insertBefore(wrap, head);
+  wrap.inert = true;
+  const flipBtn = document.getElementById('badgeFlip');
+  flipBtn.hidden = true;
 
   // The right edge of the text as it really wraps, not the width of its box
   function textRight(box) {
@@ -58,7 +61,15 @@
     return null;
   }
 
-  let spot = null, badge = null, mode = '', looping = false, sizedW = 0, sizedH = 0;
+  let spot = null, badge = null, mode = '', looping = false, sizedW = 0, sizedH = 0, on = null, mountVersion = 0, resizeTimer = 0;
+  function syncAccess() {
+    const visible = !!spot && window.__hero.prog() < .085;
+    wrap.hidden = !spot;
+    wrap.inert = !visible;
+    flipBtn.hidden = !visible || !badge || !badge.state().started;
+    if (!visible && wrap.contains(document.activeElement)) document.activeElement.blur();
+    return visible;
+  }
   const frostNav = () => document.body.classList.toggle('badge-top', !!spot && spot.top);
   const measure = () => {
     spot = place(pin.clientWidth, pin.clientHeight);
@@ -70,22 +81,25 @@
   function afterMount() {
     window.__heroBadge = badge;
     badge.setPaused(!!window.__motionPaused);
-    wrap.hidden = !spot;
+    on = null;
+    syncAccess();
     frostNav();
-    badge.ready.then(() => {
+    const mounted = badge;
+    mounted.ready.then(() => {
+      if (badge !== mounted) return;
       // The card swings in while the headline types. Coming back to a page already scrolled, it just hangs there.
       const atTop = window.__hero.prog() < .02 && !REDUCE && !window.__motionPaused;
-      setTimeout(() => badge && badge.play(atTop), atTop ? 500 : 0);
+      setTimeout(() => { if (badge === mounted) { mounted.play(atTop); syncAccess(); } }, atTop ? 500 : 0);
       if (!REDUCE && !looping) { looping = true; follow(); }
     });
   }
-  async function mountDesktop() {
+  async function mountDesktop(version) {
     mode = 'desktop';
     wrap.classList.remove('dom');
     if (!window.HeroBadge) {
       try { await load('../badge/badge-art.js'); await load('../badge/badge.js'); } catch (e) { return; }
     }
-    if (!window.HeroBadge || !window.BADGE_ART || mode !== 'desktop') return;
+    if (!window.HeroBadge || !window.BADGE_ART || mode !== 'desktop' || version !== mountVersion) return;
     const A = window.BADGE_ART;
     badge = window.HeroBadge.mount(wrap, { front: A.front, back: A.back, strap: A.strap, foilMask: A.mask, frame });
     window.__heroBadge = badge;
@@ -101,41 +115,44 @@
   }
   function mountWhenSized() {
     const hero = window.__hero;
-    if (!hero || !hero.nameBox || !hero.win().w) { setTimeout(mountWhenSized, 60); return; }
+    if (!hero || !hero.nameBox || !hero.win().w) { resizeTimer = setTimeout(mountWhenSized, 60); return; }
     measure();
     sizedW = innerWidth; sizedH = innerHeight;
-    PLAIN() ? mountPhone() : mountDesktop();
+    const version = ++mountVersion;
+    PLAIN() ? mountPhone() : mountDesktop(version);
   }
   // Rotating a tablet can cross from one kind of card to the other
   addEventListener('resize', () => {
     // The address bar sliding away on a phone changes nothing here
     if (NARROW() && innerWidth === sizedW && Math.abs(innerHeight - sizedH) < 170) return;
+    clearTimeout(resizeTimer);
     sizedW = innerWidth; sizedH = innerHeight;
     const want = PLAIN() ? 'phone' : 'desktop';
-    if (want !== mode && mode) {
+    if (!mode || want !== mode) {
+      mountVersion++;
       if (badge && badge.dispose) badge.dispose();
       badge = null;
+      mode = '';
       wrap.querySelectorAll('.still-part').forEach(e => e.remove());
       wrap.classList.remove('still');
-      setTimeout(mountWhenSized, 160);
+      resizeTimer = setTimeout(mountWhenSized, 160);
       return;
     }
-    setTimeout(() => {
+    resizeTimer = setTimeout(() => {
       measure();
-      wrap.hidden = !spot;
+      syncAccess();
       frostNav();
       if (badge && badge.resize) badge.resize();
     }, 160);
   });
-  document.getElementById('badgeFlip').addEventListener('click', () => badge && badge.flip());
+  flipBtn.addEventListener('click', () => badge && badge.flip());
   addEventListener('motionchange', () => badge && badge.setPaused(!!window.__motionPaused));
   // Scrolling on pulls the card up and out of the scene; the physics do the rest
-  let on = true;
   function follow() {
     const p = window.__hero.prog();
     if (badge) {
       badge.setLift(soft(span(p, .0015, .05)));
-      const want = p < .085 && !!spot;
+      const want = syncAccess();
       if (want !== on) { on = want; badge.setActive(on); }
     }
     requestAnimationFrame(follow);
@@ -157,6 +174,7 @@
     img.src = A.front;
     img.style.cssText = `left:${spot.anchorX - w / 2}px;top:${spot.cardTop}px;width:${w}px;height:${spot.cardHeight}px`;
     wrap.append(strap, img);
+    syncAccess();
   }
   mountWhenSized();
 })();
