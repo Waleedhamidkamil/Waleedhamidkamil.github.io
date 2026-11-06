@@ -159,6 +159,7 @@ function layout() {
   });
   laid = true; lastT = -1; sideDone = headDone = false;
   paint();
+  live.dataset.layoutReady = '1';
 }
 // A window made too small for the tour goes back to the hero's own layout
 function backToHero() {

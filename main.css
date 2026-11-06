@@ -26,6 +26,7 @@ p{text-wrap:pretty}
  /* Painted from the start and kept out of sight, so it doesn't stall the scroll when it first appears.
     Laid out once at its largest size: moving it is then only a transform. */
  #live{visibility:visible;opacity:.002;pointer-events:none;left:0;top:0;transform-origin:0 0;will-change:transform}
+ #live:not([data-layout-ready]){visibility:hidden}
 }
 #business-hub{position:absolute;left:0;top:520vh;width:1px;height:1px}
 #head{z-index:6}
